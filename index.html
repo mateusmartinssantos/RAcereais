@@ -289,21 +289,8 @@
                     fetch('/api/products')
                 ]);
 
-                console.log(' Status categories:', catsRes.status);
-                console.log(' Status products:', prodsRes.status);
-
-                // Se alguma API falhou, mostra o erro detalhado
-                if (!catsRes.ok) {
-                    const errorText = await catsRes.text();
-                    console.error('❌ Erro categories (detalhado):', errorText);
-                    throw new Error(`API categories retornou ${catsRes.status}: ${errorText.substring(0, 200)}`);
-                }
-
-                if (!prodsRes.ok) {
-                    const errorText = await prodsRes.text();
-                    console.error('❌ Erro products (detalhado):', errorText);
-                    throw new Error(`API products retornou ${prodsRes.status}: ${errorText.substring(0, 200)}`);
-                }
+                
+               
 
                 // Tenta fazer o parse do JSON
                 let categoriesData, productsData;
@@ -313,16 +300,16 @@
                     console.log('✅ Categories carregadas:', categoriesData.length);
                 } catch (e) {
                     const rawText = await catsRes.text();
-                    console.error('❌ Erro ao fazer parse do JSON categories:', rawText.substring(0, 200));
+                    //console.error('❌ Erro ao fazer parse do JSON categories:', rawText.substring(0, 200));
                     throw new Error('Resposta da API categories não é JSON válido');
                 }
 
                 try {
                     productsData = await prodsRes.json();
-                    console.log('✅ Products carregados:', productsData.length);
+                    //console.log('✅ Products carregados:', productsData.length);
                 } catch (e) {
                     const rawText = await prodsRes.text();
-                    console.error('❌ Erro ao fazer parse do JSON products:', rawText.substring(0, 200));
+                   // console.error('❌ Erro ao fazer parse do JSON products:', rawText.substring(0, 200));
                     throw new Error('Resposta da API products não é JSON válido');
                 }
 
