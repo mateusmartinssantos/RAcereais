@@ -282,7 +282,7 @@
             showLoading();
             
             try {
-                console.log('🔄 Iniciando carregamento dos dados...');
+                //console.log('🔄 Iniciando carregamento dos dados...');
                 
                 const [catsRes, prodsRes] = await Promise.all([
                     fetch('/api/categories'),
@@ -297,7 +297,7 @@
                 
                 try {
                     categoriesData = await catsRes.json();
-                    console.log('✅ Categories carregadas:', categoriesData.length);
+                    //console.log('✅ Categories carregadas:', categoriesData.length);
                 } catch (e) {
                     const rawText = await catsRes.text();
                     //console.error('❌ Erro ao fazer parse do JSON categories:', rawText.substring(0, 200));
