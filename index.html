@@ -278,31 +278,83 @@
             updateCartCount();
         });
 
-        async function loadData() {
+       async function loadData() {
             showLoading();
             
             try {
-                // Use caminhos relativos - funcionam em qualquer porta
+                console.log('🔄 Iniciando carregamento dos dados...');
+                
                 const [catsRes, prodsRes] = await Promise.all([
-                    fetch('/api/categories'),  // ✅ CERTO
-                    fetch('/api/products')      // ✅ CERTO
+                    fetch('/api/categories'),
+                    fetch('/api/products')
                 ]);
 
-                if (!catsRes.ok || !prodsRes.ok) {
-                    console.error('Status:', catsRes.status, prodsRes.status);
-                    throw new Error('falha na requisição');
+                console.log(' Status categories:', catsRes.status);
+                console.log(' Status products:', prodsRes.status);
+
+                // Se alguma API falhou, mostra o erro detalhado
+                if (!catsRes.ok) {
+                    const errorText = await catsRes.text();
+                    console.error('❌ Erro categories (detalhado):', errorText);
+                    throw new Error(`API categories retornou ${catsRes.status}: ${errorText.substring(0, 200)}`);
                 }
 
-                state.categories = await catsRes.json();
-                state.products = await prodsRes.json();
+                if (!prodsRes.ok) {
+                    const errorText = await prodsRes.text();
+                    console.error('❌ Erro products (detalhado):', errorText);
+                    throw new Error(`API products retornou ${prodsRes.status}: ${errorText.substring(0, 200)}`);
+                }
 
+                // Tenta fazer o parse do JSON
+                let categoriesData, productsData;
+                
+                try {
+                    categoriesData = await catsRes.json();
+                    console.log('✅ Categories carregadas:', categoriesData.length);
+                } catch (e) {
+                    const rawText = await catsRes.text();
+                    console.error('❌ Erro ao fazer parse do JSON categories:', rawText.substring(0, 200));
+                    throw new Error('Resposta da API categories não é JSON válido');
+                }
+
+                try {
+                    productsData = await prodsRes.json();
+                    console.log('✅ Products carregados:', productsData.length);
+                } catch (e) {
+                    const rawText = await prodsRes.text();
+                    console.error('❌ Erro ao fazer parse do JSON products:', rawText.substring(0, 200));
+                    throw new Error('Resposta da API products não é JSON válido');
+                }
+
+                // Atualiza o estado
+                state.categories = categoriesData || [];
+                state.products = (productsData || []).map(p => ({
+                    ...p,
+                    category_name: p.category_name || 'Sem categoria',
+                    category_id: p.category_id
+                }));
+
+                // Renderiza
                 renderCategories();
                 renderCategoryFilters();
                 renderProducts();
 
             } catch (error) {
-                console.error('Erro ao carregar dados:', error);
-                showToast('Erro ao carregar produtos. Tente novamente.', 'error');
+                console.error('❌ Erro ao carregar dados:', error);
+                
+                // Mostra o erro para o usuário de forma clara
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'fixed top-4 right-4 bg-red-600 text-white p-4 rounded-lg shadow-lg z-50 max-w-md';
+                errorDiv.innerHTML = `
+                    <strong class="block mb-2">Erro ao carregar produtos:</strong>
+                    <p class="text-sm mb-2">${error.message}</p>
+                    <p class="text-xs opacity-75">Verifique o console (F12) para mais detalhes</p>
+                    <button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-white/75 hover:text-white">✕</button>
+                `;
+                document.body.appendChild(errorDiv);
+                
+                showToast('Erro ao carregar produtos. Verifique o console.', 'error');
+                
             } finally {
                 hideLoading();
             }
